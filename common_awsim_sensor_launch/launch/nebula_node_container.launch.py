@@ -99,16 +99,18 @@ def launch_setup(context, *args, **kwargs):
     nodes.append(
         ComposableNode(
             package="nebula_ros",
-            plugin=sensor_make + "DriverRosWrapper",
-            name=sensor_make.lower() + "_driver_ros_wrapper_node",
+            plugin=sensor_make + "RosWrapper",
+            name=sensor_make.lower() + "_ros_wrapper_node",
             parameters=[
                 {
                     "calibration_file": sensor_calib_fp,
                     "sensor_model": sensor_model,
+                    "launch_hw": LaunchConfiguration("launch_driver"),
                     **create_parameter_dict(
                         "host_ip",
                         "sensor_ip",
                         "data_port",
+                        "gnss_port",
                         "return_mode",
                         "min_range",
                         "max_range",
@@ -117,8 +119,9 @@ def launch_setup(context, *args, **kwargs):
                         "cloud_min_angle",
                         "cloud_max_angle",
                         "dual_return_distance_threshold",
+                        "rotation_speed",
+                        "packet_mtu_size",
                         "setup_sensor",
-                        "retry_hw",
                     ),
                 },
             ],
@@ -127,36 +130,6 @@ def launch_setup(context, *args, **kwargs):
                 # TODO(knzo25): fix the remapping once nebula gets updated
                 ("pandar_points", "pointcloud_raw_ex"),
                 ("velodyne_points", "pointcloud_raw_ex"),
-            ],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
-        )
-    )
-
-    nodes.append(
-        ComposableNode(
-            package="nebula_ros",
-            plugin=sensor_make + "HwMonitorRosWrapper",
-            name=sensor_make.lower() + "_hw_monitor_ros_wrapper_node",
-            parameters=[
-                {
-                    "sensor_model": sensor_model,
-                    **create_parameter_dict(
-                        "return_mode",
-                        "frame_id",
-                        "scan_phase",
-                        "sensor_ip",
-                        "host_ip",
-                        "data_port",
-                        "gnss_port",
-                        "packet_mtu_size",
-                        "rotation_speed",
-                        "cloud_min_angle",
-                        "cloud_max_angle",
-                        "diag_span",
-                        "dual_return_distance_threshold",
-                        "delay_monitor_ms",
-                    ),
-                },
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -247,45 +220,6 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=nodes,
     )
 
-    driver_component = ComposableNode(
-        package="nebula_ros",
-        plugin=sensor_make + "HwInterfaceRosWrapper",
-        # node is created in a global context, need to avoid name clash
-        name=sensor_make.lower() + "_hw_interface_ros_wrapper_node",
-        parameters=[
-            {
-                "sensor_model": sensor_model,
-                "calibration_file": sensor_calib_fp,
-                **create_parameter_dict(
-                    "sensor_ip",
-                    "host_ip",
-                    "scan_phase",
-                    "return_mode",
-                    "frame_id",
-                    "rotation_speed",
-                    "data_port",
-                    "gnss_port",
-                    "cloud_min_angle",
-                    "cloud_max_angle",
-                    "packet_mtu_size",
-                    "dual_return_distance_threshold",
-                    "setup_sensor",
-                    "ptp_profile",
-                    "ptp_transport_type",
-                    "ptp_switch_type",
-                    "ptp_domain",
-                    "retry_hw",
-                ),
-            }
-        ],
-    )
-
-    driver_component_loader = LoadComposableNodes(
-        composable_node_descriptions=[driver_component],
-        target_container=container,
-        condition=IfCondition(LaunchConfiguration("launch_driver")),
-    )
-
     distortion_component = ComposableNode(
         package="autoware_pointcloud_preprocessor",
         plugin="autoware::pointcloud_preprocessor::DistortionCorrectorComponent",
@@ -324,7 +258,7 @@ def launch_setup(context, *args, **kwargs):
         condition=launch.conditions.UnlessCondition(LaunchConfiguration("use_distortion_corrector")),
     )
 
-    return [container, driver_component_loader, distortion_loader, distortion_relay_loader]
+    return [container, distortion_loader, distortion_relay_loader]
 
 
 def generate_launch_description():
