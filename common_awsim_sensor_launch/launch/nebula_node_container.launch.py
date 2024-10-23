@@ -162,6 +162,11 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
+    filter_param = ParameterFile(
+        param_file=LaunchConfiguration("filter_param_path").perform(context),
+        allow_substs=True,
+    )
+
     cropbox_parameters = create_parameter_dict("input_frame", "output_frame")
     cropbox_parameters["negative"] = True
 
@@ -182,7 +187,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "pointcloud_raw_ex"),
                 ("output", "self_cropped/pointcloud_ex"),
             ],
-            parameters=[cropbox_parameters],
+            parameters=[filter_param, cropbox_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
@@ -384,6 +389,12 @@ def generate_launch_description():
     add_launch_arg(
         "distortion_corrector_node_param_file",
         [FindPackageShare("common_sensor_launch"), "/config/distortion_corrector_node.param.yaml"],
+    )
+
+    add_launch_arg(
+        "filter_param_path",
+        str(common_sensor_share_dir / "config" / "filter.param.yaml"),
+        description="path to parameter file of filter",
     )
 
     set_container_executable = SetLaunchConfiguration(
