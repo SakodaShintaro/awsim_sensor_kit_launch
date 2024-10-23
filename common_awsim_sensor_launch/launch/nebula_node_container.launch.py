@@ -209,7 +209,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "self_cropped/pointcloud_ex"),
                 ("output", "mirror_cropped/pointcloud_ex"),
             ],
-            parameters=[cropbox_parameters],
+            parameters=[filter_param, cropbox_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
@@ -237,7 +237,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "rectified/pointcloud_ex"),
                 ("output", "pointcloud"),
             ],
-            parameters=[ring_outlier_filter_node_param, ring_outlier_output_frame],
+            parameters=[filter_param, ring_outlier_filter_node_param, ring_outlier_output_frame],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
