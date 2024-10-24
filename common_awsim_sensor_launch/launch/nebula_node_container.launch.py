@@ -99,16 +99,20 @@ def launch_setup(context, *args, **kwargs):
     nodes.append(
         ComposableNode(
             package="nebula_ros",
-            plugin=sensor_make + "DriverRosWrapper",
-            name=sensor_make.lower() + "_driver_ros_wrapper_node",
+            plugin=sensor_make + "RosWrapper",
+            name=sensor_make.lower() + "_ros_wrapper_node",
             parameters=[
                 {
                     "calibration_file": sensor_calib_fp,
                     "sensor_model": sensor_model,
+                    "launch_hw": LaunchConfiguration("launch_driver"),
                     **create_parameter_dict(
                         "host_ip",
                         "sensor_ip",
                         "data_port",
+                        "gnss_port",
+                        "packet_mtu_size",
+                        "rotation_speed",
                         "return_mode",
                         "min_range",
                         "max_range",
