@@ -106,6 +106,7 @@ def launch_setup(context, *args, **kwargs):
                     "calibration_file": sensor_calib_fp,
                     "sensor_model": sensor_model,
                     "launch_hw": LaunchConfiguration("launch_driver"),
+                    "udp_only": True,
                     **create_parameter_dict(
                         "host_ip",
                         "sensor_ip",
